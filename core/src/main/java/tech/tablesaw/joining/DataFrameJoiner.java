@@ -431,6 +431,7 @@ public class DataFrameJoiner {
   public Table leftOuter(boolean allowDuplicateColumnNames, Table... tables) {
     Table joined = table;
     for (Table table2 : tables) {
+      // joined = leftOuter(table2, allowDuplicateColumnNames, joinColumnNames);
       joined =
           joinInternal(
               joined, table2, JoinType.LEFT_OUTER, allowDuplicateColumnNames, joinColumnNames);
@@ -502,7 +503,11 @@ public class DataFrameJoiner {
   public Table rightOuter(boolean allowDuplicateColumnNames, Table... tables) {
     Table joined = table;
     for (Table table2 : tables) {
-      joined = rightOuter(table2, allowDuplicateColumnNames, joinColumnNames);
+      joined =
+          joinInternal(
+              joined, table2, JoinType.RIGHT_OUTER, allowDuplicateColumnNames, joinColumnNames);
+      joinColumnIndexes.clear();
+      joinColumnIndexes.addAll(getJoinIndexes(joined, joinColumnNames));
     }
     return joined;
   }

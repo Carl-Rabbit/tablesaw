@@ -93,6 +93,13 @@ public class DataFrameJoinerTest {
                   .join("ID,Dog Name", "1.1,Spot", "3.0,Fido", "4.0,Sasha", "5.0,King"),
               "Dogs");
 
+  private static final Table DOUBLE_INDEXED_DOGS_REVERSE =
+      Table.read()
+          .csv(
+              Joiner.on(System.lineSeparator())
+                  .join("Dog Name,ID", "Spot,1.1", "Fido,3.0", "Sasha,4.0", "King,5.0"),
+              "DogsReverse");
+
   private static final Table DOUBLE_INDEXED_CATS =
       Table.read()
           .csv(
@@ -575,11 +582,41 @@ public class DataFrameJoinerTest {
   }
 
   @Test
+  public void rightOuterJoinWithDoubles2Reverse() {
+    Table joined = DOUBLE_INDEXED_PEOPLE.joinOn("ID").rightOuter(DOUBLE_INDEXED_DOGS_REVERSE);
+    assertEquals(3, joined.columnCount());
+    assertEquals(4, joined.rowCount());
+    assertEquals(4, joined.column("ID").size());
+  }
+
+  @Test
   public void rightOuterJoinWithDoubles3() {
     Table joined =
         DOUBLE_INDEXED_PEOPLE.joinOn("ID").rightOuter(DOUBLE_INDEXED_DOGS, DOUBLE_INDEXED_CATS);
-    assertEquals(3, joined.columnCount());
+    assertTrue(
+        joined.columnNames().containsAll(Arrays.asList("ID", "Name", "Dog Name", "Cat Name")));
     assertEquals(4, joined.rowCount());
+    assertEquals(4, joined.column("ID").size());
+    assertEquals(0, joined.column("ID").countMissing());
+    assertEquals(4, joined.column("Name").size());
+    assertEquals(3, joined.column("Name").countMissing());
+    assertEquals(4, joined.column("Dog Name").size());
+    assertEquals(3, joined.column("Dog Name").countMissing());
+    assertEquals(4, joined.column("Cat Name").size());
+    assertEquals(0, joined.column("Cat Name").countMissing());
+  }
+
+  @Test
+  public void rightOuterJoinWithDoubles4() {
+    Table joined = DOUBLE_INDEXED_PEOPLE.joinOn("ID").rightOuter(DOUBLE_INDEXED_DOGS);
+    assertTrue(joined.columnNames().containsAll(Arrays.asList("ID", "Name", "Dog Name")));
+    assertEquals(4, joined.rowCount());
+    assertEquals(4, joined.column("ID").size());
+    assertEquals(0, joined.column("ID").countMissing());
+    assertEquals(4, joined.column("Dog Name").size());
+    assertEquals(0, joined.column("Dog Name").countMissing());
+    assertEquals(4, joined.column("Name").size());
+    assertEquals(1, joined.column("Name").countMissing());
   }
 
   @Test
